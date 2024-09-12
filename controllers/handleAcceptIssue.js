@@ -1,11 +1,9 @@
-const userSockets = {};
-
-function handleAssignTask(ws, payload) {
+function handleAcceptIssue(ws, users, payload) {
   try {
-    const { action, toUserId, data } = JSON.parse(payload);
+    const { toUserId, data } = JSON.parse(payload);
 
-    if (action === "accept_task" && toUserId && data) {
-      const recipientSocket = userSockets[toUserId];
+    if (toUserId && data) {
+      const recipientSocket = users[toUserId];
       if (recipientSocket) {
         recipientSocket.send(JSON.stringify({ from: ws.userId, data }));
       } else {
@@ -17,4 +15,4 @@ function handleAssignTask(ws, payload) {
   }
 }
 
-module.exports = { handleAssignTask };
+module.exports = { handleAcceptIssue };
