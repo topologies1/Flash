@@ -2,27 +2,49 @@ require("dotenv").config();
 const WebSocket = require("ws");
 const http = require("http");
 const { authenticateSocket } = require("./middlewares/authMiddleware");
-const { handleAssignTask } = require("./controllers/assignTaskController");
+const { handleAcceptIssue } = require("./controllers/handleAcceptIssue");
 
 const server = http.createServer();
 const wss = new WebSocket.Server({ server });
 
 // Handle WebSocket connection
-wss.on("connection", (ws, req) => {
+wss.on("connection", (ws) => {
   console.log("New connection");
 
-  // Authenticate the socket connection
-  authenticateSocket(ws, req, () => {
-    ws.on("assigntask", (payload) => handleAssignTask(ws, payload));
+  ws.on("message", (message) => {
+    try {
+      const data = JSON.parse(message); // Parse the incoming message from the client
 
-    ws.on("close", () => {
-      console.log(`Connection closed for user ${ws.userId}`);
-    });
+      if (
+        !!data?.encryptedSecretKey &&
+        !!data?.iv &&
+        !!data?.authTag &&
+        !!data?.userId
+      ) {
+        // Authenticate the socket connection
+        authenticateSocket(ws, data, (users) => {
+          console.log("User authenticated", users);
+
+          if (data?.action === "accept_issue") {
+            handleAcceptIssue(ws, users, data?.payload);
+          }
+
+          ws.on("close", () => {
+            console.log(`Connection closed for user ${ws.userId}`);
+          });
+        });
+      } else {
+        ws.close(4001, "Invalid message format");
+      }
+    } catch (err) {
+      ws.close(4002, "Error parsing message");
+      console.error("Message parsing error:", err);
+    }
   });
 });
 
 // Start the server
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`> Ready on http://localhost:${PORT}`);
 });
