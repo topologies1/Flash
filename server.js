@@ -23,7 +23,7 @@ wss.on("connection", (ws) => {
       ) {
         // Authenticate the socket connection
         authenticateSocket(ws, data, (users) => {
-          console.log("User authenticated", users);
+          console.log("User authenticated", ws.userId);
 
           if (data?.action === "accept_issue") {
             handleAcceptIssue(ws, users, data?.payload);
