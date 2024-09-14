@@ -4,8 +4,6 @@ const http = require("http");
 const { authenticateSocket } = require("./middlewares/authMiddleware");
 const { handleSend } = require("./controllers/handleSend");
 
-console.log("process.env.ORIGIN: ", process.env.ORIGIN);
-
 const server = http.createServer((req, res) => {
   // Handle CORS for HTTP requests
   res.setHeader("Access-Control-Allow-Origin", process.env.ORIGIN); // Set the allowed origin
@@ -21,7 +19,7 @@ const server = http.createServer((req, res) => {
   }
 });
 
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ noServer: true });
 
 server.on("upgrade", (request, socket, head) => {
   const origin = request.headers.origin;
