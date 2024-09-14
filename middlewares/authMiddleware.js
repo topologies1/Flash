@@ -15,6 +15,11 @@ function authenticateSocket(ws, req, next) {
 
     const decryptedKey = decrypt(encryptedSecretKey, iv, authTag);
 
+    if (decryptedKey === "failed") {
+      ws.close(4001, "Unauthorized");
+      return;
+    }
+
     // Compare the decrypted key with your valid secret key
     if (decryptedKey === process.env.SECRET_KEY) {
       if (ws.userId !== userId && !userSockets[userId]) {
