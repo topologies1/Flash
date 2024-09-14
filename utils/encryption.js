@@ -23,7 +23,16 @@ function decrypt(encryptedData, iv, authTag) {
   let decrypted = decipher.update(encryptedBuffer, "binary", "utf8");
   decrypted += decipher.final("utf8");
 
-  return decrypted;
+  // Split the decrypted data to get the timestamp and the original secret key
+  const [timestamp, secretKey] = decrypted.split(":");
+
+  // Validate timestamp
+  const currentUTCTimestamp = Math.floor(new Date().getTime() / 1000);
+  if (currentUTCTimestamp - parseInt(timestamp) > 3) {
+    return "failed";
+  }
+
+  return secretKey;
 }
 
 module.exports = { decrypt };
